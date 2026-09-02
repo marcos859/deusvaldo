@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Davinópolis com Deusvaldo - MGM Gestão</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .safe-bottom {
+      padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
+
+  <!-- Header Superior -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white text-xl shadow-md">
+          <i class="fa-solid fa-clipboard-check"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Davinópolis com Deusvaldo</h1>
+          <p class="text-xs font-semibold text-emerald-700">MGM Gestão</p>
+        </div>
+      </div>
+      <div id="cloud-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5 shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+        <span id="cloud-status-text">Conectando Nuvem...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="max-w-4xl mx-auto px-4 py-4 safe-bottom">
+
+    <!-- ABA 1: CHAMADA -->
+    <section id="tab-chamada" class="space-y-4">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div class="w-full sm:w-auto">
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Data da Chamada</label>
+          <input type="date" id="chamada-data" class="w-full sm:w-48 px-3 py-2 text-base font-bold bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" />
+        </div>
+        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+          <button onclick="marcarTodos('presente')" class="flex-1 sm:flex-none px-3 py-2.5 bg-emerald-600 text-white font-bold text-xs sm:text-sm rounded-xl active:scale-95 transition shadow-sm hover:bg-emerald-700">
+            <i class="fa-solid fa-check-double mr-1"></i> Todos Presentes
+          </button>
+          <button onclick="marcarTodos('meia')" class="flex-1 sm:flex-none px-3 py-2.5 bg-amber-500 text-white font-bold text-xs sm:text-sm rounded-xl active:scale-95 transition shadow-sm hover:bg-amber-600">
+            <i class="fa-solid fa-adjust mr-1"></i> Todos Meia
+          </button>
+          <button onclick="marcarTodos('ausente')" class="flex-1 sm:flex-none px-3 py-2.5 bg-rose-100 text-rose-700 font-bold text-xs sm:text-sm rounded-xl active:scale-95 transition border border-rose-200 hover:bg-rose-200">
+            <i class="fa-solid fa-xmark mr-1"></i> Ausentes
+          </button>
+        </div>
+      </div>
+
+      <div id="chamada-list" class="space-y-2.5"></div>
+    </section>
+
+    <!-- ABA 2: TRABALHADORES -->
+    <section id="tab-trabalhadores" class="space-y-4 hidden">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold text-slate-900">Equipe Cadastrada</h2>
+        <button onclick="abrirModalTrabalhador()" class="px-4 py-2.5 bg-emerald-600 text-white font-bold text-sm rounded-xl shadow-md active:scale-95 transition hover:bg-emerald-700">
+          <i class="fa-solid fa-plus mr-1"></i> Cadastrar
+        </button>
+      </div>
+      <div id="trabalhadores-list" class="space-y-2.5"></div>
+    </section>
+
+    <!-- ABA 3: PAGAMENTOS -->
+    <section id="tab-pagamentos" class="space-y-4 hidden">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Controle de Pagamentos</h2>
+          <p class="text-xs text-slate-500">Mostrando apenas pendências a pagar</p>
+        </div>
+      </div>
+      <div id="pagamentos-list" class="space-y-2.5"></div>
+    </section>
+
+    <!-- ABA 4: RELATÓRIOS -->
+    <section id="tab-relatorios" class="space-y-4 hidden">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold text-slate-900">Relatórios Individuais</h2>
+      </div>
+      <div id="relatorios-list" class="space-y-2.5"></div>
+    </section>
+
+  </main>
+
+  <!-- Barra de Navegação Inferior Móvel -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 py-2 px-4 z-30 shadow-lg">
+    <div class="max-w-md mx-auto grid grid-cols-4 gap-1">
+      <button onclick="mudarAba('chamada')" id="nav-chamada" class="flex flex-col items-center justify-center py-1 rounded-xl text-emerald-600 font-bold transition">
+        <i class="fa-solid fa-calendar-check text-xl mb-0.5"></i>
+        <span class="text-[11px]">Chamada</span>
+      </button>
+      <button onclick="mudarAba('trabalhadores')" id="nav-trabalhadores" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium transition">
+        <i class="fa-solid fa-users text-xl mb-0.5"></i>
+        <span class="text-[11px]">Equipe</span>
+      </button>
+      <button onclick="mudarAba('pagamentos')" id="nav-pagamentos" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium transition">
+        <i class="fa-solid fa-money-bill-wave text-xl mb-0.5"></i>
+        <span class="text-[11px]">Pagar</span>
+      </button>
+      <button onclick="mudarAba('relatorios')" id="nav-relatorios" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium transition">
+        <i class="fa-solid fa-chart-pie text-xl mb-0.5"></i>
+        <span class="text-[11px]">Relatórios</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MODAIS -->
+  <div id="modal-trabalhador" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-slate-100">
+      <h3 id="modal-trabalhador-titulo" class="text-base font-bold text-slate-900 mb-4">Novo Trabalhador</h3>
+      <input type="hidden" id="trab-id" />
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome Completo *</label>
+          <input type="text" id="trab-nome" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-semibold" placeholder="Ex: João da Silva" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">WhatsApp / Telefone</label>
+          <input type="tel" id="trab-telefone" inputmode="tel" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="(99) 99999-9999" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Valor da Diária Integral (R$)</label>
+          <input type="number" id="trab-diaria" inputmode="decimal" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Ex: 80" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status</label>
+          <select id="trab-status" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-semibold">
+            <option value="ativo">Ativo</option>
+            <option value="inativo">Inativo</option>
+          </select>
+        </div>
+      </div>
+      <div class="mt-5 flex gap-2">
+        <button onclick="fecharModalTrabalhador()" class="flex-1 py-2.5 bg-slate-100 text-slate-700 font-bold text-sm rounded-xl hover:bg-slate-200 active:scale-95 transition">Cancelar</button>
+        <button onclick="salvarTrabalhador()" class="flex-1 py-2.5 bg-emerald-600 text-white font-bold text-sm rounded-xl shadow-md hover:bg-emerald-700 active:scale-95 transition">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PAGAMENTO -->
+  <div id="modal-pagamento" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-slate-100">
+      <h3 class="text-base font-bold text-slate-900 mb-1">Dar Baixa no Pagamento</h3>
+      <p id="pag-nome" class="text-xs text-slate-500 mb-4 font-semibold"></p>
+      <input type="hidden" id="pag-trab-id" />
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Valor a Pagar (R$)</label>
+          <input type="number" step="0.01" id="pag-valor" inputmode="decimal" class="w-full px-3 py-2.5 text-base font-bold text-emerald-600 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" />
+          <p class="text-[11px] text-slate-400 mt-1">Ao pagar o total pendente, as diárias e o saldo a receber serão zerados nesta aba.</p>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Data do Pagamento</label>
+          <input type="date" id="pag-data" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-semibold" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Forma de Pagamento</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="setFormaPag('PIX')" id="btn-forma-pix" class="py-2 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center gap-1">
+              <i class="fa-brands fa-pix"></i> PIX
+            </button>
+            <button type="button" onclick="setFormaPag('Dinheiro')" id="btn-forma-dinheiro" class="py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-600 font-bold text-xs flex items-center justify-center gap-1">
+              <i class="fa-solid fa-money-bill-wave"></i> Dinheiro
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5 flex gap-2">
+        <button onclick="fecharModalPagamento()" class="flex-1 py-2.5 bg-slate-100 text-slate-700 font-bold text-sm rounded-xl hover:bg-slate-200 active:scale-95 transition">Cancelar</button>
+        <button onclick="confirmarPagamento()" class="flex-1 py-2.5 bg-emerald-600 text-white font-bold text-sm rounded-xl shadow-md hover:bg-emerald-700 active:scale-95 transition">Confirmar Baixa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PERFIL/RELATÓRIO -->
+  <div id="modal-perfil" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl border border-slate-100 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 id="perfil-nome" class="text-base font-bold text-slate-900"></h3>
+          <p id="perfil-telefone" class="text-xs text-slate-500"></p>
+        </div>
+        <button onclick="fecharModalPerfil()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-sm">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="overflow-y-auto py-4 space-y-4 flex-1">
+        <div class="grid grid-cols-2 gap-2 text-center">
+          <div class="bg-emerald-50 border border-emerald-100 p-3 rounded-2xl">
+            <span class="block text-xs font-bold text-emerald-700">Total Já Recebido</span>
+            <span id="perfil-total-recebido" class="text-lg font-bold text-emerald-800">R$ 0,00</span>
+          </div>
+          <div class="bg-amber-50 border border-amber-100 p-3 rounded-2xl">
+            <span class="block text-xs font-bold text-amber-700">Falta Pagar</span>
+            <span id="perfil-a-receber" class="text-lg font-bold text-amber-800">R$ 0,00</span>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Histórico Completo de Presenças</h4>
+          <div id="perfil-presencas" class="space-y-1.5 text-xs"></div>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Histórico de Pagamentos Baixados</h4>
+          <div id="perfil-pagamentos" class="space-y-1.5 text-xs"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONEXÃO FIREBASE V10 DIRETA -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAEtE6SGUO-ZjHJowMpTL_pzuJxwzobdN4",
+      authDomain: "deusvaldo-61ff8.firebaseapp.com",
+      projectId: "deusvaldo-61ff8",
+      storageBucket: "deusvaldo-61ff8.firebasestorage.app",
+      messagingSenderId: "784586332976",
+      appId: "1:784586332976:web:5a62437f43b4b8d19846f5"
+    };
+
+    let appState = {
+      workers: [],
+      attendance: {},
+      payments: []
+    };
+
+    const local = localStorage.getItem("mgm_data");
+    if (local) {
+      try { appState = JSON.parse(local); } catch(e) {}
+    }
+
+    let db = null;
+    let docRef = null;
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      docRef = doc(db, "mgm_gestao", "dados_gerais");
+
+      onSnapshot(docRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const cloudData = snapshot.data();
+          appState.workers = cloudData.workers || [];
+          appState.attendance = cloudData.attendance || {};
+          appState.payments = cloudData.payments || [];
+          localStorage.setItem("mgm_data", JSON.stringify(appState));
+        } else {
+          setDoc(docRef, {
+            workers: appState.workers || [],
+            attendance: appState.attendance || {},
+            payments: appState.payments || [],
+            iniciadoEm: new Date().toISOString()
+          });
+        }
+        atualizarStatusNuvem(true);
+        window.render();
+      }, (err) => {
+        console.error("Erro Firestore:", err);
+        atualizarStatusNuvem(false);
+      });
+
+    } catch (e) {
+      console.error("Falha ao inicializar Firebase:", e);
+      atualizarStatusNuvem(false);
+    }
+
+    function atualizarStatusNuvem(online) {
+      const badge = document.getElementById("cloud-badge");
+      if (online) {
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-sm";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-600"></span><span>🟢 Nuvem Conectada</span>`;
+      } else {
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5 shadow-sm";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span>Salvo no Aparelho</span>`;
+      }
+    }
+
+    window.salvarNaNuvem = async function() {
+      localStorage.setItem("mgm_data", JSON.stringify(appState));
+      if (db && docRef) {
+        try {
+          await setDoc(docRef, {
+            workers: appState.workers || [],
+            attendance: appState.attendance || {},
+            payments: appState.payments || [],
+            atualizadoEm: new Date().toISOString()
+          });
+          atualizarStatusNuvem(true);
+        } catch(e) {
+          console.error("Erro ao salvar:", e);
+        }
+      }
+    };
+
+    window.appState = appState;
+    window.render();
+  </script>
+
+  <!-- LÓGICA DO SISTEMA -->
+  <script>
+    let formaPagSelecionada = 'PIX';
+
+    // Data Atual
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById("chamada-data").value = hoje;
+    document.getElementById("pag-data").value = hoje;
+    document.getElementById("chamada-data").addEventListener("change", () => renderChamada());
+
+    function mudarAba(aba) {
+      ['chamada', 'trabalhadores', 'pagamentos', 'relatorios'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const nav = document.getElementById(`nav-${t}`);
+        nav.classList.remove('text-emerald-600', 'font-bold');
+        nav.classList.add('text-slate-400', 'font-medium');
+      });
+      document.getElementById(`tab-${aba}`).classList.remove('hidden');
+      const activeNav = document.getElementById(`nav-${aba}`);
+      activeNav.classList.remove('text-slate-400', 'font-medium');
+      activeNav.classList.add('text-emerald-600', 'font-bold');
+      render();
+    }
+
+    function render() {
+      renderChamada();
+      renderTrabalhadores();
+      renderPagamentos();
+      renderRelatorios();
+    }
+
+    // RENDER: CHAMADA COM MEIA DIÁRIA
+    function renderChamada() {
+      const state = window.appState || { workers: [], attendance: {}, payments: [] };
+      const data = document.getElementById("chamada-data").value;
+      const list = document.getElementById("chamada-list");
+      const ativos = (state.workers || []).filter(w => w.status === 'ativo');
+
+      if (ativos.length === 0) {
+        list.innerHTML = `<div class="bg-white p-6 rounded-2xl border border-slate-200 text-center text-slate-400 text-sm">Nenhum trabalhador ativo cadastrado.</div>`;
+        return;
+      }
+
+      list.innerHTML = ativos.map(w => {
+        const key = `${w.id}_${data}`;
+        const pres = (state.attendance || {})[key];
+        const isPres = pres === 'presente';
+        const isMeia = pres === 'meia';
+        const isAus = pres === 'ausente';
+
+        return `
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm sm:text-base">${w.nome}</h4>
+              <p class="text-xs text-slate-500">${w.telefone || 'Sem fone'} • R$ ${Number(w.diaria || 0).toFixed(2)}/dia (Meia: R$ ${(Number(w.diaria || 0)/2).toFixed(2)})</p>
+            </div>
+            <div class="flex gap-1.5 w-full sm:w-auto">
+              <button onclick="setPresenca('${w.id}', 'presente')" class="flex-1 sm:flex-none px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition active:scale-95 ${isPres ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-emerald-50'}">
+                <i class="fa-solid fa-check"></i> Presente
+              </button>
+              <button onclick="setPresenca('${w.id}', 'meia')" class="flex-1 sm:flex-none px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition active:scale-95 ${isMeia ? 'bg-amber-500 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-amber-50'}">
+                <i class="fa-solid fa-adjust"></i> Meia (½)
+              </button>
+              <button onclick="setPresenca('${w.id}', 'ausente')" class="flex-1 sm:flex-none px-2.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition active:scale-95 ${isAus ? 'bg-rose-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-rose-50'}">
+                <i class="fa-solid fa-xmark"></i> Ausente
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setPresenca(id, status) {
+      const state = window.appState;
+      const data = document.getElementById("chamada-data").value;
+      const key = `${id}_${data}`;
+      if (!state.attendance) state.attendance = {};
+      
+      if (state.attendance[key] === status) {
+        delete state.attendance[key];
+      } else {
+        state.attendance[key] = status;
+      }
+      if (window.salvarNaNuvem) window.salvarNaNuvem();
+      render();
+    }
+
+    function marcarTodos(status) {
+      const state = window.appState;
+      const data = document.getElementById("chamada-data").value;
+      if (!state.attendance) state.attendance = {};
+      
+      (state.workers || []).filter(w => w.status === 'ativo').forEach(w => {
+        state.attendance[`${w.id}_${data}`] = status;
+      });
+      if (window.salvarNaNuvem) window.salvarNaNuvem();
+      render();
+    }
+
+    // CÁLCULOS: DIÁRIAS GERAIS E PENDENTES
+    function getWorkerStats(id) {
+      const state = window.appState || { workers: [], attendance: {}, payments: [] };
+      const w = (state.workers || []).find(item => item.id === id);
+      if (!w) return { 
+        totalHistoricoDias: 0, 
+        diasPendentes: 0,
+        totalGanhoHistorico: 0, 
+        pago: 0, 
+        aReceber: 0, 
+        totalPresente: 0, 
+        totalMeia: 0 
+      };
+
+      let totalHistoricoDias = 0;
+      let totalPresente = 0;
+      let totalMeia = 0;
+
+      const attendance = state.attendance || {};
+      Object.keys(attendance).forEach(key => {
+        const lastUnder = key.lastIndexOf('_');
+        const workerId = key.substring(0, lastUnder);
+        if (workerId === id) {
+          if (attendance[key] === 'presente') {
+            totalHistoricoDias += 1.0;
+            totalPresente++;
+          } else if (attendance[key] === 'meia') {
+            totalHistoricoDias += 0.5;
+            totalMeia++;
+          }
+        }
+      });
+
+      const valorDiaria = Number(w.diaria || 0);
+      const totalGanhoHistorico = totalHistoricoDias * valorDiaria;
+      const pago = (state.payments || [])
+        .filter(p => p.workerId === id)
+        .reduce((sum, p) => sum + Number(p.valor || 0), 0);
+
+      const aReceber = Math.max(0, totalGanhoHistorico - pago);
+
+      let diasPendentes = 0;
+      if (valorDiaria > 0 && aReceber > 0) {
+        diasPendentes = aReceber / valorDiaria;
+      }
+
+      return {
+        totalHistoricoDias,
+        diasPendentes,
+        totalPresente,
+        totalMeia,
+        totalGanhoHistorico,
+        pago,
+        aReceber
+      };
+    }
+
+    // RENDER: TRABALHADORES
+    function renderTrabalhadores() {
+      const state = window.appState || { workers: [] };
+      const list = document.getElementById("trabalhadores-list");
+      if (!state.workers || state.workers.length === 0) {
+        list.innerHTML = `<div class="bg-white p-6 rounded-2xl border border-slate-200 text-center text-slate-400 text-sm">Nenhum trabalhador cadastrado.</div>`;
+        return;
+      }
+
+      list.innerHTML = state.workers.map(w => `
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <h4 class="font-bold text-slate-900 text-sm sm:text-base">${w.nome}</h4>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${w.status === 'ativo' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">${w.status}</span>
+            </div>
+            <p class="text-xs text-slate-500">${w.telefone || 'Sem fone'} • R$ ${Number(w.diaria || 0).toFixed(2)}/diária (Meia: R$ ${(Number(w.diaria || 0)/2).toFixed(2)})</p>
+          </div>
+          <div class="flex gap-1.5">
+            <button onclick="editarTrabalhador('${w.id}')" class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200"><i class="fa-solid fa-pen text-xs"></i></button>
+            <button onclick="excluirTrabalhador('${w.id}')" class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center hover:bg-rose-100"><i class="fa-solid fa-trash text-xs"></i></button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // RENDER: PAGAMENTOS (MOSTRA APENAS DIÁRIAS QUE FALTA PAGAR E VALOR A RECEBER)
+    function renderPagamentos() {
+      const state = window.appState || { workers: [] };
+      const list = document.getElementById("pagamentos-list");
+      if (!state.workers || state.workers.length === 0) {
+        list.innerHTML = `<div class="bg-white p-6 rounded-2xl border border-slate-200 text-center text-slate-400 text-sm">Nenhum trabalhador cadastrado.</div>`;
+        return;
+      }
+
+      list.innerHTML = state.workers.map(w => {
+        const stats = getWorkerStats(w.id);
+        const estaZerado = stats.aReceber <= 0.01;
+
+        return `
+          <div class="bg-white p-3.5 rounded-2xl border ${estaZerado ? 'border-slate-100 bg-slate-50/50' : 'border-slate-200'} shadow-sm flex items-center justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-slate-900 text-sm sm:text-base">${w.nome}</h4>
+                ${estaZerado ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">✓ Quitado</span>` : ''}
+              </div>
+              <p class="text-xs text-slate-500">
+                ${estaZerado ? 'Sem diárias pendentes' : `Diárias a pagar: <strong class="text-slate-800">${stats.diasPendentes.toFixed(1)} diária(s)</strong>`}
+              </p>
+              <p class="text-sm font-bold ${estaZerado ? 'text-slate-400' : 'text-amber-600'} mt-0.5">
+                Falta Pagar: R$ ${stats.aReceber.toFixed(2)}
+              </p>
+            </div>
+            <div>
+              ${estaZerado 
+                ? `<button disabled class="px-3.5 py-2.5 bg-slate-100 text-slate-400 font-bold text-xs rounded-xl cursor-not-allowed">Sem Pendência</button>`
+                : `<button onclick="abrirModalPagamento('${w.id}')" class="px-4 py-2.5 bg-emerald-600 text-white font-bold text-xs sm:text-sm rounded-xl active:scale-95 shadow-md hover:bg-emerald-700">Dar Baixa</button>`
+              }
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // RENDER: RELATÓRIOS
+    function renderRelatorios() {
+      const state = window.appState || { workers: [] };
+      const list = document.getElementById("relatorios-list");
+      if (!state.workers || state.workers.length === 0) {
+        list.innerHTML = `<div class="bg-white p-6 rounded-2xl border border-slate-200 text-center text-slate-400 text-sm">Nenhum trabalhador cadastrado.</div>`;
+        return;
+      }
+
+      list.innerHTML = state.workers.map(w => {
+        const stats = getWorkerStats(w.id);
+        return `
+          <div onclick="abrirPerfil('${w.id}')" class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer active:scale-98 transition hover:border-emerald-300">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm sm:text-base">${w.nome}</h4>
+              <p class="text-xs text-slate-500">Histórico total: ${stats.totalHistoricoDias.toFixed(1)} diárias registradas</p>
+              <p class="text-xs font-semibold text-emerald-700 mt-0.5">Pago: R$ ${stats.pago.toFixed(2)} • Falta: R$ ${stats.aReceber.toFixed(2)}</p>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // CRUD TRABALHADOR
+    function abrirModalTrabalhador(id = null) {
+      const state = window.appState || { workers: [] };
+      document.getElementById("trab-id").value = id || '';
+      if (id) {
+        const w = (state.workers || []).find(item => item.id === id);
+        document.getElementById("modal-trabalhador-titulo").innerText = "Editar Trabalhador";
+        document.getElementById("trab-nome").value = w.nome;
+        document.getElementById("trab-telefone").value = w.telefone || '';
+        document.getElementById("trab-diaria").value = w.diaria || '';
+        document.getElementById("trab-status").value = w.status || 'ativo';
+      } else {
+        document.getElementById("modal-trabalhador-titulo").innerText = "Novo Trabalhador";
+        document.getElementById("trab-nome").value = '';
+        document.getElementById("trab-telefone").value = '';
+        document.getElementById("trab-diaria").value = '';
+        document.getElementById("trab-status").value = 'ativo';
+      }
+      document.getElementById("modal-trabalhador").classList.remove("hidden");
+    }
+
+    function fecharModalTrabalhador() {
+      document.getElementById("modal-trabalhador").classList.add("hidden");
+    }
+
+    function salvarTrabalhador() {
+      const state = window.appState;
+      const id = document.getElementById("trab-id").value;
+      const nome = document.getElementById("trab-nome").value.trim();
+      const telefone = document.getElementById("trab-telefone").value.trim();
+      const diaria = document.getElementById("trab-diaria").value;
+      const status = document.getElementById("trab-status").value;
+
+      if (!nome) return alert("Por favor, digite o nome!");
+      if (!state.workers) state.workers = [];
+
+      if (id) {
+        const idx = state.workers.findIndex(w => w.id === id);
+        if (idx !== -1) {
+          state.workers[idx] = { ...state.workers[idx], nome, telefone, diaria: Number(diaria) || 0, status };
+        }
+      } else {
+        state.workers.push({
+          id: 'w_' + Date.now(),
+          nome,
+          telefone,
+          diaria: Number(diaria) || 0,
+          status
+        });
+      }
+
+      if (window.salvarNaNuvem) window.salvarNaNuvem();
+      fecharModalTrabalhador();
+      render();
+    }
+
+    function editarTrabalhador(id) {
+      abrirModalTrabalhador(id);
+    }
+
+    function excluirTrabalhador(id) {
+      if (confirm("Deseja realmente excluir este trabalhador?")) {
+        const state = window.appState;
+        state.workers = (state.workers || []).filter(w => w.id !== id);
+        if (window.salvarNaNuvem) window.salvarNaNuvem();
+        render();
+      }
+    }
+
+    // MODAL PAGAMENTO
+    function abrirModalPagamento(id) {
+      const state = window.appState || { workers: [] };
+      const w = (state.workers || []).find(item => item.id === id);
+      const stats = getWorkerStats(id);
+      document.getElementById("pag-trab-id").value = id;
+      document.getElementById("pag-nome").innerText = `${w.nome} (Pendente: ${stats.diasPendentes.toFixed(1)} diária(s) = R$ ${stats.aReceber.toFixed(2)})`;
+      document.getElementById("pag-valor").value = stats.aReceber > 0 ? stats.aReceber.toFixed(2) : '';
+      setFormaPag('PIX');
+      document.getElementById("modal-pagamento").classList.remove("hidden");
+    }
+
+    function fecharModalPagamento() {
+      document.getElementById("modal-pagamento").classList.add("hidden");
+    }
+
+    function setFormaPag(forma) {
+      formaPagSelecionada = forma;
+      const pix = document.getElementById("btn-forma-pix");
+      const din = document.getElementById("btn-forma-dinheiro");
+      if (forma === 'PIX') {
+        pix.className = "py-2 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center gap-1";
+        din.className = "py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-600 font-bold text-xs flex items-center justify-center gap-1";
+      } else {
+        din.className = "py-2 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center gap-1";
+        pix.className = "py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-600 font-bold text-xs flex items-center justify-center gap-1";
+      }
+    }
+
+    function confirmarPagamento() {
+      const state = window.appState;
+      const workerId = document.getElementById("pag-trab-id").value;
+      const valor = Number(document.getElementById("pag-valor").value);
+      const data = document.getElementById("pag-data").value;
+
+      if (!valor || valor <= 0) return alert("Digite um valor válido!");
+      if (!state.payments) state.payments = [];
+
+      state.payments.push({
+        id: 'p_' + Date.now(),
+        workerId,
+        valor,
+        data,
+        forma: formaPagSelecionada
+      });
+
+      if (window.salvarNaNuvem) window.salvarNaNuvem();
+      fecharModalPagamento();
+      render();
+    }
+
+    // MODAL PERFIL
+    function abrirPerfil(id) {
+      const state = window.appState || { workers: [], attendance: {}, payments: [] };
+      const w = (state.workers || []).find(item => item.id === id);
+      const stats = getWorkerStats(id);
+
+      document.getElementById("perfil-nome").innerText = w.nome;
+      document.getElementById("perfil-telefone").innerText = `${w.telefone || 'Sem telefone'} • R$ ${Number(w.diaria || 0).toFixed(2)}/diária`;
+      document.getElementById("perfil-total-recebido").innerText = `R$ ${stats.pago.toFixed(2)}`;
+      document.getElementById("perfil-a-receber").innerText = `R$ ${stats.aReceber.toFixed(2)}`;
+
+      // Presenças
+      const presList = document.getElementById("perfil-presencas");
+      const logs = [];
+      const attendance = state.attendance || {};
+      Object.keys(attendance).forEach(key => {
+        const lastUnder = key.lastIndexOf('_');
+        const workerId = key.substring(0, lastUnder);
+        const data = key.substring(lastUnder + 1);
+        if (workerId === id) {
+          logs.push({ data, status: attendance[key] });
+        }
+      });
+      logs.sort((a, b) => b.data.localeCompare(a.data));
+
+      if (logs.length === 0) {
+        presList.innerHTML = `<p class="text-slate-400">Nenhum registro de chamada.</p>`;
+      } else {
+        presList.innerHTML = logs.map(l => {
+          let statusText = '✗ Ausente';
+          let statusClass = 'text-rose-700';
+          if (l.status === 'presente') {
+            statusText = '✓ Presente (Integral)';
+            statusClass = 'text-emerald-700';
+          } else if (l.status === 'meia') {
+            statusText = '½ Meia Diária';
+            statusClass = 'text-amber-700';
+          }
+
+          return `
+            <div class="flex justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span>📅 ${l.data.split('-').reverse().join('/')}</span>
+              <span class="font-bold ${statusClass}">${statusText}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Pagamentos
+      const pagList = document.getElementById("perfil-pagamentos");
+      const pags = (state.payments || []).filter(p => p.workerId === id);
+      pags.sort((a, b) => b.data.localeCompare(a.data));
+
+      if (pags.length === 0) {
+        pagList.innerHTML = `<p class="text-slate-400">Nenhum pagamento registrado.</p>`;
+      } else {
+        pagList.innerHTML = pags.map(p => `
+          <div class="flex justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+            <span>📅 ${p.data.split('-').reverse().join('/')} (${p.forma})</span>
+            <span class="font-bold text-emerald-700">R$ ${Number(p.valor).toFixed(2)}</span>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById("modal-perfil").classList.remove("hidden");
+    }
+
+    function fecharModalPerfil() {
+      document.getElementById("modal-perfil").classList.add("hidden");
+    }
+  </script>
+</body>
+</html>
